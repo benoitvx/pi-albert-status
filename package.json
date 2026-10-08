@@ -1,0 +1,13 @@
+{
+  "name": "pi-albert-status",
+  "version": "0.1.0",
+  "description": "Barre d'état Albert API pour Pi : contexte, débit RPM/TPM, jetons et CO2 de la session et du jour, attente de quota (via llm-proxy)",
+  "keywords": ["pi-package", "albert-api", "llm-proxy", "statusline"],
+  "license": "MIT",
+  "type": "module",
+  "pi": { "extensions": ["./extensions/albert-status.ts"] },
+  "peerDependencies": {
+    "@earendil-works/pi-coding-agent": "*",
+    "@earendil-works/pi-tui": "*"
+  }
+}
