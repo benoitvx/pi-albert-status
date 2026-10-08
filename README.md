@@ -63,7 +63,7 @@ done | sort -k2 -nr | head
 
 ## Inspiration
 
-Ce projet s'inspire dans son ensemble de [claude-hud](https://github.com/jarrodwatts/claude-hud), la barre d'état de Jarrod Watts pour Claude Code : le concept, les jauges et la mise en page.
+Ce projet s'inspire dans son ensemble de [claude-hud](https://github.com/jarrodwatts/claude-hud), la barre d'état de Jarrod Watts pour Claude Code.
 
 ## Licence
 
