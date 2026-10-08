@@ -26,7 +26,7 @@ Session 481k tok · ≈ 0.1 gCO2e │ Jour 167 req · 4.8 gCO2e │ ⏳ 1 en att
 | 3 | `⏳ 1 en attente ~12s` | requêtes retenues par le régulateur de llm-proxy pour rester sous le quota, et attente prévue. N'apparaît que s'il y en a | `GET /proxy/attente` |
 | 3 | `llm-proxy injoignable` | le proxy ne répond pas : « Jour » et ⏳ ne sont plus mis à jour | — |
 
-Les jauges sont vertes ou bleues, passent à l'orange à 70 % et au rouge à 90 %. La barre se rafraîchit toutes les 10 secondes, à chaque requête envoyée et à chaque fin de tour.
+Les jauges prennent les couleurs du thème de Pi, passent à l'orange à 70 % et au rouge à 90 %. La barre se rafraîchit toutes les 10 secondes, à chaque requête envoyée et à chaque fin de tour.
 
 ## Installation
 
