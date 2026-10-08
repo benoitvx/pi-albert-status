@@ -8,7 +8,7 @@ Contexte ███░░░░░░░ 31% │ RPM ██░░░░░░░�
 Session 481k tok · ≈ 0.1 gCO2e │ Jour 167 req · 4.8 gCO2e │ ⏳ 1 en attente ~12s
 ```
 
-<!-- capture d'écran à ajouter : docs/barre.png -->
+![Barre d'état dans Pi](docs/barre.png)
 
 ## Ce qui est affiché
 
