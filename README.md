@@ -12,14 +12,21 @@ Session 481k tok · ≈ 0.1 gCO2e │ Jour 167 req · 4.8 gCO2e │ ⏳ 1 en att
 
 ## Ce qui est affiché
 
-- **Ligne 1** : modèle et niveau de réflexion, dossier courant et branche git.
-- **Ligne 2** :
-  - **Contexte** : taille de la dernière requête envoyée, rapportée à la fenêtre du modèle ;
-  - **RPM / TPM** : requêtes et jetons envoyés sur les 60 dernières secondes, rapportés aux plafonds réglés. Les jauges passent à l'orange à 70 % et au rouge à 90 %.
-- **Ligne 3** :
-  - **Session** : jetons envoyés et reçus depuis le début de la session, CO2 estimé ;
-  - **Jour** : requêtes et CO2 du jour (UTC) selon `GET /v1/me/usage`, pour le compte ou pour une seule clé ;
-  - **⏳** : requêtes que le régulateur de llm-proxy retient pour rester sous le quota (`/proxy/attente`). N'apparaît que s'il y en a.
+| Ligne | Élément | Signification | Source |
+|---|---|---|---|
+| 1 | `[gpt-oss-120b • …]` | modèle en cours | Pi |
+| 1 | `• medium` | niveau de réflexion (*thinking*), réglé avec `/thinking`. Vaut `off` pour un modèle déclaré sans réflexion (`"reasoning": false` dans `models.json`) | Pi |
+| 1 | `mon-projet (main)` | dossier de travail et branche git | Pi |
+| 2 | `Contexte … 31%` | taille de la dernière requête envoyée, rapportée à la fenêtre de contexte du modèle | estimation locale |
+| 2 | `RPM … 12/50` | requêtes envoyées sur les 60 dernières secondes, rapportées au plafond `ALBERT_RPM` | comptage local |
+| 2 | `TPM … 200k/246k` | jetons envoyés sur les 60 dernières secondes, rapportés au plafond `ALBERT_TPM` | estimation locale |
+| 3 | `Session 481k tok` | jetons envoyés et reçus depuis le début de la session Pi | estimation locale |
+| 3 | `≈ 0.1 gCO2e` | CO2 de la session : intensité du jour (g par jeton de sortie) × jetons de sortie de la session | calcul à partir de « Jour » |
+| 3 | `Jour 167 req · 4.8 gCO2e` | requêtes et CO2 du jour (minuit UTC), pour la clé `ALBERT_KEY_ID` ou tout le compte | `GET /v1/me/usage` |
+| 3 | `⏳ 1 en attente ~12s` | requêtes retenues par le régulateur de llm-proxy pour rester sous le quota, et attente prévue. N'apparaît que s'il y en a | `GET /proxy/attente` |
+| 3 | `llm-proxy injoignable` | le proxy ne répond pas : « Jour » et ⏳ ne sont plus mis à jour | — |
+
+Les jauges sont vertes ou bleues, passent à l'orange à 70 % et au rouge à 90 %. La barre se rafraîchit toutes les 10 secondes, à chaque requête envoyée et à chaque fin de tour.
 
 ## Installation
 
