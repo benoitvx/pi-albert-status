@@ -61,6 +61,10 @@ done | sort -k2 -nr | head
 - **« Jour » en retard** de 3 à 10 minutes, le temps qu'Albert enregistre l'usage.
 - **⏳ seulement via le proxy** : rien ne s'affiche pour un provider qui appelle Albert en direct.
 
+## Inspiration
+
+La mise en page et les jauges s'inspirent de [claude-hud](https://github.com/jarrodwatts/claude-hud), la barre d'état de Jarrod Watts pour Claude Code.
+
 ## Licence
 
 MIT
