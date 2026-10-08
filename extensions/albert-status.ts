@@ -96,7 +96,7 @@ export default function (pi: ExtensionAPI) {
 					envois = envois.filter((x) => Date.now() - x.t < 60_000);
 					const m = ctx.model;
 					const branche = footerData.getGitBranch();
-					const l1 = t.fg("accent", `[${m?.id ?? "aucun modèle"} • ${pi.getThinkingLevel()}]`) + sep +
+					const l1 = t.fg("accent", `[${m?.id ?? "aucun modèle"}${m?.reasoning ? ` • ${pi.getThinkingLevel()}` : ""}]`) + sep +
 						t.fg("warning", basename(ctx.cwd)) + (branche ? t.fg("dim", ` (${branche})`) : "");
 
 					const fenetre = m?.contextWindow ?? 0;

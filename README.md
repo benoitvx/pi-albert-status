@@ -15,7 +15,7 @@ Session 481k tok · ≈ 0.1 gCO2e │ Jour 167 req · 4.8 gCO2e │ ⏳ 1 en att
 | Ligne | Élément | Signification | Source |
 |---|---|---|---|
 | 1 | `[gpt-oss-120b • …]` | modèle en cours | Pi |
-| 1 | `• medium` | niveau de réflexion (*thinking*), réglé avec `/thinking`. Vaut `off` pour un modèle déclaré sans réflexion (`"reasoning": false` dans `models.json`) | Pi |
+| 1 | `• medium` | niveau de réflexion (*thinking*), réglé avec `/thinking`. Masqué pour un modèle déclaré sans réflexion (`"reasoning": false` dans `models.json`) | Pi |
 | 1 | `mon-projet (main)` | dossier de travail et branche git | Pi |
 | 2 | `Contexte … 31%` | taille de la dernière requête envoyée, rapportée à la fenêtre de contexte du modèle | estimation locale |
 | 2 | `RPM … 12/50` | requêtes envoyées sur les 60 dernières secondes, rapportées au plafond `ALBERT_RPM` | comptage local |
