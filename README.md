@@ -1,11 +1,11 @@
 # pi-albert-status
 
-Barre d'état pour [Pi](https://pi.dev) branché sur [Albert API](https://ia.numerique.gouv.fr/outils-ia/albert-api/) à travers [llm-proxy](https://codeberg.org/jbousquie/llm-proxy).
+Barre d'état pour [Pi](https://pi.dev) branché sur [Albert API](https://ia.numerique.gouv.fr/outils-ia/albert-api/), en appel direct (sans proxy).
 
 ```
 [gpt-oss-120b • medium] │ mon-projet (main)
 Contexte ███░░░░░░░ 31% │ RPM ██░░░░░░░░ 12/50 │ TPM ████████░░ 200k/246k
-Session 481k tok · ≈ 0.1 gCO2e │ Jour 167 req · 4.8 gCO2e │ ⏳ 1 en attente ~12s
+Session 481k tok · ≈ 0.1 gCO2e │ Jour 167 req · 4.8 gCO2e
 ```
 
 ![Barre d'état dans Pi](docs/barre.png)
@@ -23,14 +23,13 @@ Session 481k tok · ≈ 0.1 gCO2e │ Jour 167 req · 4.8 gCO2e │ ⏳ 1 en att
 | 3 | `Session 481k tok` | jetons envoyés et reçus depuis le début de la session Pi | estimation locale |
 | 3 | `≈ 0.1 gCO2e` | CO2 de la session : intensité du jour (g par jeton de sortie) × jetons de sortie de la session | calcul à partir de « Jour » |
 | 3 | `Jour 167 req · 4.8 gCO2e` | requêtes et CO2 du jour (minuit UTC), pour la clé `ALBERT_KEY_ID` ou tout le compte | `GET /v1/me/usage` |
-| 3 | `⏳ 1 en attente ~12s` | requêtes retenues par le régulateur de llm-proxy pour rester sous le quota, et attente prévue. N'apparaît que s'il y en a | `GET /proxy/attente` |
-| 3 | `llm-proxy injoignable` | le proxy ne répond pas : « Jour » et ⏳ ne sont plus mis à jour | — |
+| 3 | `usage Albert indisponible` | l'appel à `/v1/me/usage` a échoué (réseau, clé invalide) : « Jour » n'est plus mis à jour | — |
 
 Les jauges prennent les couleurs du thème de Pi, passent à l'orange à 70 % et au rouge à 90 %. La barre se rafraîchit toutes les 10 secondes, à chaque requête envoyée et à chaque fin de tour.
 
 ## Installation
 
-Prérequis : Pi 1.0 ou plus, llm-proxy lancé (par défaut sur `http://127.0.0.1:8080`) et un provider Pi qui pointe dessus.
+Prérequis : Pi 1.0 ou plus et un provider Pi qui pointe sur Albert API (`https://albert.api.etalab.gouv.fr/v1`). L'extension reprend l'URL et la clé de ce provider (`models.json`) : rien d'autre à configurer.
 
 ```bash
 pi install git:github.com/benoitvx/pi-albert-status
@@ -44,7 +43,6 @@ Variables d'environnement, toutes optionnelles :
 
 | Variable | Rôle | Défaut |
 |---|---|---|
-| `LLM_PROXY_URL` | adresse de llm-proxy | `http://127.0.0.1:8080` |
 | `ALBERT_KEY_ID` | identifiant de la clé Albert à suivre dans « Jour » | tout le compte |
 | `ALBERT_RPM` | plafond de requêtes par minute affiché | `50` |
 | `ALBERT_TPM` | plafond de jetons par minute affiché | `246000` |
@@ -62,11 +60,10 @@ done | sort -k2 -nr | head
 
 ## Limites connues
 
-- **Jetons estimés** à 4 caractères par jeton, sur la requête entière. Via le proxy, l'usage renvoyé par Albert à Pi n'est pas exploitable. C'est un ordre de grandeur, pas le décompte d'Albert, qui compte plus large.
+- **Jetons estimés** à 4 caractères par jeton, sur la requête entière. L'usage renvoyé par Albert à Pi n'est pas exploitable. C'est un ordre de grandeur, pas le décompte d'Albert, qui compte plus large.
 - **Débit compté par session Pi** : deux Pi ouverts en parallèle affichent chacun le leur, alors que le quota d'Albert s'applique au compte, modèle par modèle.
 - **CO2 de session estimé** : intensité du jour (kg par jeton de sortie, selon Albert) multipliée par les jetons de sortie de la session.
 - **« Jour » en retard** de 3 à 10 minutes, le temps qu'Albert enregistre l'usage.
-- **⏳ seulement via le proxy** : rien ne s'affiche pour un provider qui appelle Albert en direct.
 
 ## Inspiration
 

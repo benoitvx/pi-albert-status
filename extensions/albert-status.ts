@@ -1,14 +1,14 @@
 /**
- * Barre d'état Albert API pour Pi (remplace le footer), via llm-proxy :
+ * Barre d'état Albert API pour Pi (remplace le footer), en appel direct à Albert :
  *   [modèle • réflexion] │ dossier (branche)
  *   Contexte ███░░ │ RPM ███░░ x/50 │ TPM ███░░ x/246k
- *   Session x tok · ≈ x gCO2e │ Jour x req · x gCO2e │ ⏳ attente de quota
+ *   Session x tok · ≈ x gCO2e │ Jour x req · x gCO2e
  *
  * Réglages (variables d'environnement, toutes optionnelles) :
- *   LLM_PROXY_URL   adresse du proxy                  (défaut http://127.0.0.1:8080)
  *   ALBERT_KEY_ID   id de clé pour filtrer « Jour »   (défaut : tout le compte)
  *   ALBERT_RPM      plafond requêtes/minute affiché   (défaut 50)
  *   ALBERT_TPM      plafond jetons/minute affiché     (défaut 246000)
+ * L'URL et la clé viennent du provider Pi du modèle courant (models.json), rien à configurer.
  * Les défauts RPM/TPM sont ceux de la grille publique (Expérimentation / Production limitée) :
  * https://ia.numerique.gouv.fr/outils-ia/albert-api/tarifs-et-limites/
  */
@@ -17,20 +17,22 @@ import { basename } from "node:path";
 import { truncateToWidth } from "@earendil-works/pi-tui";
 
 const env = process.env;
-const PROXY = (env.LLM_PROXY_URL ?? "http://127.0.0.1:8080").replace(/\/$/, "");
 const CLE_ID = env.ALBERT_KEY_ID;
 const LIMITES = { rpm: Number(env.ALBERT_RPM) || 50, tpm: Number(env.ALBERT_TPM) || 246_000 };
 const LARGEUR = 10;
 
-async function get(path: string): Promise<any> {
-	const r = await fetch(PROXY + path, { signal: AbortSignal.timeout(3000) });
+async function get(base: string, apiKey: string | undefined, path: string): Promise<any> {
+	const r = await fetch(base.replace(/\/$/, "") + path, {
+		headers: apiKey ? { Authorization: `Bearer ${apiKey}` } : {},
+		signal: AbortSignal.timeout(3000),
+	});
 	if (!r.ok) throw new Error(String(r.status));
 	return r.json();
 }
 
 const k = (n: number) => (n >= 1e6 ? `${(n / 1e6).toFixed(1)}M` : n >= 1e3 ? `${Math.round(n / 1e3)}k` : String(n));
 const g = (kg: number) => (kg * 1000 >= 10 ? (kg * 1000).toFixed(0) : (kg * 1000).toFixed(1));
-// Estimation 4 caractères par jeton : l'usage renvoyé par Albert via le proxy n'est pas fiable pour Pi.
+// Estimation 4 caractères par jeton : l'usage renvoyé par Albert à Pi n'est pas exploitable (content en tableau, prompt_tokens=0).
 const jetons = (x: unknown) => Math.round(JSON.stringify(x ?? "").length / 4);
 
 export default function (pi: ExtensionAPI) {
@@ -38,8 +40,7 @@ export default function (pi: ExtensionAPI) {
 	let sessionEntree = 0;
 	let dernierEnvoi = 0;
 	let jour: { req: number; kg: number; tok: number } | undefined;
-	let attente = "";
-	let proxyKo = false;
+	let albertKo = false;
 	let timer: ReturnType<typeof setInterval> | undefined;
 	let render = () => {};
 
@@ -61,18 +62,17 @@ export default function (pi: ExtensionAPI) {
 
 	async function poll(ctx: any) {
 		try {
+			if (!ctx.model) return;
+			const auth = await ctx.modelRegistry.getApiKeyAndHeaders(ctx.model);
+			if (!auth.ok) throw new Error(auth.error);
+			const base = auth.baseUrl ?? ctx.model.baseUrl;
 			const end = Math.floor(Date.now() / 1000);
 			const filtre = CLE_ID ? `&key_id=${encodeURIComponent(CLE_ID)}` : "";
-			const u = (await get(`/v1/me/usage?start_time=${end - (end % 86400)}&end_time=${end}${filtre}`)).data?.[0];
+			const u = (await get(base, auth.apiKey, `/me/usage?start_time=${end - (end % 86400)}&end_time=${end}${filtre}`)).data?.[0];
 			jour = { req: u?.requests ?? 0, kg: u?.impacts?.kgCO2eq ?? 0, tok: u?.completion_tokens ?? 0 };
-			attente = "";
-			if (ctx.model?.baseUrl?.startsWith(PROXY)) {
-				const w = await get(`/proxy/attente?model=${encodeURIComponent(ctx.model.id)}`);
-				if (w.en_cours > 0) attente = `⏳ ${w.en_cours} en attente ~${Math.ceil(w.prevision_secs)}s`;
-			}
-			proxyKo = false;
+			albertKo = false;
 		} catch {
-			proxyKo = true;
+			albertKo = true;
 		}
 		render();
 	}
@@ -114,9 +114,8 @@ export default function (pi: ExtensionAPI) {
 					const co2 = jour?.tok ? ` · ≈ ${g((jour.kg / jour.tok) * sortie)} gCO2e` : "";
 					const l3 = [
 						t.fg("dim", "Session ") + `${k(total)} tok${co2}`,
-						proxyKo ? t.fg("error", "llm-proxy injoignable")
+						albertKo ? t.fg("error", "usage Albert indisponible")
 							: jour ? t.fg("dim", "Jour ") + `${jour.req} req · ${g(jour.kg)} gCO2e` : "",
-						attente && t.fg("warning", attente),
 					].filter(Boolean).join(sep);
 
 					return [l1, l2, l3].map((l) => truncateToWidth(l, width));
